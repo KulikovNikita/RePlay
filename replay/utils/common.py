@@ -2,10 +2,10 @@ import functools
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Callable, Union, TypeVar
-from typing_extensions import ParamSpec
+from typing import Any, Callable, TypeVar, Union
 
 from polars import from_pandas as pl_from_pandas
+from typing_extensions import ParamSpec
 
 from replay.data.dataset import Dataset
 from replay.preprocessing import (
@@ -59,6 +59,7 @@ if TORCH_AVAILABLE:
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
 
 def save_to_replay(obj: SavableObject, path: Union[str, Path]) -> None:
     """
