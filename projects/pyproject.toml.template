@@ -116,13 +116,11 @@ torch = [
 ]
 
 {% endif %}
-{% if project == "default" %}
 [[tool.poetry.source]]
 name = "torch-cpu-mirror"
 url = "https://download.pytorch.org/whl/cpu"
 priority = "explicit"
 
-{% endif %}
 [tool.poetry-dynamic-versioning]
 enable = true
 format-jinja = """0.20.0{{ env['PACKAGE_SUFFIX'] }}"""
