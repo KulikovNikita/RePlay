@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "poetry-core>=2.0.0",
+    "poetry-core>=2.2.1",
     "poetry-dynamic-versioning>=1.0.0,<2.0.0",
     "setuptools",
 ]
@@ -24,7 +24,7 @@ dev = [
     "myst-parser (==1.0.0)",
     "ghp-import (==2.1.0)",
     "docutils (==0.16)",
-    "data-science-types (==0.2.23)"
+    "data-science-types (==0.2.23)",
 ]
 
 [project]
