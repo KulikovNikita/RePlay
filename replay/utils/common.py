@@ -2,7 +2,8 @@ import functools
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, TypeVar
+from typing_extensions import ParamSpec
 
 from polars import from_pandas as pl_from_pandas
 
@@ -56,6 +57,8 @@ if TORCH_AVAILABLE:
         PolarsSequentialDataset,
     ]
 
+P = ParamSpec("P")
+R = TypeVar("R")
 
 def save_to_replay(obj: SavableObject, path: Union[str, Path]) -> None:
     """
@@ -87,10 +90,10 @@ def _check_if_dataframe(var: Any):
         raise ValueError(msg)
 
 
-def check_if_dataframe(*args_to_check: str) -> Callable[..., Any]:
-    def decorator_func(func: Callable[..., Any]) -> Callable[..., Any]:
+def check_if_dataframe(*args_to_check: str) -> Callable[P, R]:
+    def decorator_func(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
-        def wrap_func(*args: Any, **kwargs: Any) -> Any:
+        def wrap_func(*args: P.args, **kwargs: P.kwargs) -> R:
             extended_kwargs = {}
             extended_kwargs.update(kwargs)
             extended_kwargs.update(dict(zip(inspect.signature(func).parameters.keys(), args)))

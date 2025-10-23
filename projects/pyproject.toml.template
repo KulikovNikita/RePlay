@@ -116,7 +116,6 @@ torch = [
 ]
 
 {% endif %}
-
 {% if project == "default" %}
 [[tool.poetry.source]]
 name = "torch-cpu-mirror"
