@@ -73,11 +73,11 @@ class LightningModule(lightning.LightningModule):
 
     def predict_step(self, batch: dict) -> torch.Tensor:
         model_output: InferenceOutput = self(batch)
-        return model_output["logits"]
+        return model_output
 
     def validation_step(self, batch: dict) -> torch.Tensor:
         model_output: InferenceOutput = self(batch)
-        return model_output["logits"]
+        return model_output
 
     def configure_optimizers(self) -> Any:
         """
