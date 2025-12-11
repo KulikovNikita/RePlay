@@ -504,9 +504,9 @@ class TwoTower(torch.nn.Module):
                 activation="relu",
             ),
             query_tower_output_normalization=torch.nn.LayerNorm(embedding_dim),
-            item_encoder=SwiGLUEncoder(embedding_dim=embedding_dim),
+            item_encoder=SwiGLUEncoder(embedding_dim=embedding_dim, hidden_dim=2*embedding_dim),
             item_reference_path=item_reference_path,
-            loss=CE(padding_value=schema.item_id_features.item().padding_value),
+            loss=CE(padding_idx=schema.item_id_features.item().padding_value),
             context_merger=None,
         )
 
