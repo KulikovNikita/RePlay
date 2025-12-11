@@ -5,11 +5,12 @@ import torch
 from lightning.pytorch.utilities.rank_zero import rank_zero_only
 
 from replay.metrics.torch_metrics_builder import MetricName, TorchMetricsBuilder, metrics_to_df
-from replay.models.nn.sequential.postprocessors import BasePostProcessor
-from replay.nn import InferenceOutput, LightningModule
+from replay.nn import InferenceOutput
+from replay.nn.lightning import LightningModule
+from replay.nn.lightning.postprocessors import PostprocessorBase
 
 
-class ValidationMetricsCallback(lightning.Callback):
+class MetricsCalculator(lightning.Callback):
     """
     Callback for validation and testing stages.
 
@@ -31,7 +32,7 @@ class ValidationMetricsCallback(lightning.Callback):
         self,
         metrics: Optional[list[MetricName]] = None,
         ks: Optional[list[int]] = None,
-        postprocessors: Optional[list[BasePostProcessor]] = None,
+        postprocessors: Optional[list[PostprocessorBase]] = None,
         item_count: Optional[int] = None,
     ):
         """
@@ -50,7 +51,7 @@ class ValidationMetricsCallback(lightning.Callback):
         self._item_count = item_count
         self._metrics_builders: list[TorchMetricsBuilder] = []
         self._dataloaders_size: list[int] = []
-        self._postprocessors: list[BasePostProcessor] = postprocessors or []
+        self._postprocessors: list[PostprocessorBase] = postprocessors or []
 
     def _get_dataloaders_size(self, dataloaders: Optional[Any]) -> list[int]:
         if isinstance(dataloaders, torch.utils.data.DataLoader):
