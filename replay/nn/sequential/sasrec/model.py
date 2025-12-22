@@ -136,7 +136,7 @@ class SasRec(torch.nn.Module):
     ):
         """
         :param embedder: An object of a class that performs the logic of
-            generating embeddings from an input set of tensors.
+            generating embeddings from an input set of tensors. 
         :param embedding_aggregator: An object of a class that performs the logic of aggregating multiple embeddings.\n
         :param attn_mask_builder: An object of a class that performs the logic of
             generating an attention mask based on the features and padding mask given to the model.

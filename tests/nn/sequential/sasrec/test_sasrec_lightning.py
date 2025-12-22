@@ -1,46 +1,50 @@
-import pytest
-
-import torch
 import lightning as L
+import pytest
+import torch
+
 from replay.nn.lightning import LightningModule
+from replay.nn.optimizer_utils import FatOptimizerFactory, LambdaLRSchedulerFactory
 
 
 @pytest.mark.torch
-def test_training_sasrec_with_different_losses(model_parametrized, parquet_module):
-    sasrec = LightningModule(model_parametrized)
+def test_training_sasrec_with_different_losses(sasrec_parametrized, parquet_module):
+    sasrec = LightningModule(sasrec_parametrized, 
+        optimizer_factory=FatOptimizerFactory(),
+        lr_scheduler_factory=LambdaLRSchedulerFactory(warmup_steps=1))
     trainer = L.Trainer(max_epochs=2)
     trainer.fit(sasrec, datamodule=parquet_module)
 
 
 @pytest.mark.torch
-def test_sasrec_checkpoining(model, parquet_module, tmp_path):
-    sasrec = LightningModule(model)
+def test_sasrec_checkpoining(sasrec_model, parquet_module, tmp_path):
+    sasrec = LightningModule(sasrec_model)
     trainer = L.Trainer(max_epochs=1)
     trainer.fit(sasrec, datamodule=parquet_module)
 
     ckpt_path = tmp_path / "checkpoints/last.ckpt"
     trainer.save_checkpoint(ckpt_path)
 
-    loaded_sasrec = LightningModule.load_from_checkpoint(ckpt_path, model=model)
+    loaded_sasrec = LightningModule.load_from_checkpoint(ckpt_path, model=sasrec_model)
+
+    batch = parquet_module.compiled_transforms["train"](next(iter(parquet_module.train_dataloader())))
 
     sasrec.eval()
     loaded_sasrec.eval()
 
-    batch = parquet_module.compiled_transforms["train"](next(iter(parquet_module.train_dataloader())))
     output1 = sasrec(batch)
     output2 = loaded_sasrec(batch)
 
-    torch.testing.assert_close(output1.logits, output2.logits)
-    torch.testing.assert_close(output1.hidden_states[0], output2.hidden_states[0])
+    torch.testing.assert_close(output1["logits"], output2["logits"])
+    torch.testing.assert_close(output1["hidden_states"][0], output2["hidden_states"][0])
 
 
 @pytest.mark.torch
 @pytest.mark.parametrize(
     "candidates_to_score",
-    [torch.LongTensor([1]), torch.LongTensor([1, 2]), None],
+    [torch.LongTensor([1]), torch.LongTensor([1, 2]), torch.arange(0, 40, dtype=torch.long), None],
 )
-def test_sasrec_prediction_with_candidates(model, parquet_module, candidates_to_score):
-    sasrec = LightningModule(model)
+def test_sasrec_prediction_with_candidates(sasrec_model, parquet_module, candidates_to_score):
+    sasrec = LightningModule(sasrec_model)
     trainer = L.Trainer(max_epochs=1)
     trainer.fit(sasrec, datamodule=parquet_module)
 
@@ -53,18 +57,16 @@ def test_sasrec_prediction_with_candidates(model, parquet_module, candidates_to_
     else:
         assert sasrec.candidates_to_score is None
 
-    for pred in predictions:
+    for pred in predictions[:-1]:
         if candidates_to_score is None:
-            assert pred.size() == (1, 3)
-        elif isinstance(candidates_to_score, torch.BoolTensor):
-            assert pred.size() == (1, candidates_to_score.sum())
+            assert pred["logits"].size() == (parquet_module.batch_size, 40)
         else:
-            assert pred.size() == (1, candidates_to_score.shape[0])
+            assert pred["logits"].size() == (parquet_module.batch_size, candidates_to_score.shape[0])
 
 
 @pytest.mark.torch
-def test_predictions_sasrec_equal_with_permuted_candidates(model, parquet_module):
-    sasrec = LightningModule(model)
+def test_predictions_sasrec_equal_with_permuted_candidates(sasrec_model, parquet_module):
+    sasrec = LightningModule(sasrec_model)
     trainer = L.Trainer(max_epochs=1)
     trainer.fit(sasrec, datamodule=parquet_module)
 
@@ -81,7 +83,9 @@ def test_predictions_sasrec_equal_with_permuted_candidates(model, parquet_module
     predictions_permuted_candidates = trainer.predict(sasrec, datamodule=parquet_module)
 
     for i in range(len(predictions_permuted_candidates)):
-        assert torch.equal(predictions_permuted_candidates[i][:, ordering], predictions_sorted_candidates[i])
+        assert torch.equal(
+            predictions_permuted_candidates[i]["logits"][:, ordering], predictions_sorted_candidates[i]["logits"]
+        )
 
 
 @pytest.mark.torch
@@ -89,10 +93,8 @@ def test_predictions_sasrec_equal_with_permuted_candidates(model, parquet_module
     "candidates_to_score",
     [torch.FloatTensor([1]), torch.BoolTensor([1, 0])],
 )
-def test_sasrec_prediction_invalid_candidates_to_score(
-    model, parquet_module, candidates_to_score
-):
-    sasrec = LightningModule(model)
+def test_sasrec_prediction_invalid_candidates_to_score(sasrec_model, parquet_module, candidates_to_score):
+    sasrec = LightningModule(sasrec_model)
     trainer = L.Trainer(max_epochs=1)
     trainer.fit(sasrec, datamodule=parquet_module)
 

@@ -1,11 +1,12 @@
 import pytest
 import torch
+
 from replay.data import FeatureType
 from replay.data.nn.schema import TensorFeatureInfo, TensorSchema
-from replay.nn import SequenceEmbedding
+from replay.nn import SequenceEmbedding, CategoricalEmbedding
 
 
-@pytest.mark.parametrize("excluded_features", [None, ["item_list_feature"], ["item_id", "item_list_feature"]])
+@pytest.mark.parametrize("excluded_features", [None, ["num_feature"], ["item_id", "num_feature"]])
 def test_sequence_embedding_forward(tensor_schema, simple_batch, excluded_features):
     embedder = SequenceEmbedding(tensor_schema, excluded_features=excluded_features)
     output_tensors = embedder(simple_batch["feature_tensors"])
@@ -68,3 +69,16 @@ def test_exclude_all_keys(tensor_schema):
     excluded_features = tensor_schema.keys()
     with pytest.raises(ValueError):
         SequenceEmbedding(tensor_schema, excluded_features=excluded_features)
+
+def test_warnings_categorical_emb():
+    tensor_info = TensorFeatureInfo(
+        name="some_feature", 
+        is_seq=True,
+        embedding_dim=64,
+        feature_type=FeatureType.CATEGORICAL,
+        cardinality=5,
+        padding_value=2
+    )
+    with pytest.warns(UserWarning):
+        embedding = CategoricalEmbedding(tensor_info)
+        assert embedding.weight.size() == (4, 64)

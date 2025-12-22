@@ -6,7 +6,7 @@ import torch
 from replay.nn.loss import BCE, CE, BCESampled, CESampled, LogInCE, LogInCESampled, LogOutCE
 from replay.nn import ConcatAggregator, SequenceEmbedding, DefaultAttentionMask
 
-from replay.nn.sequential.sasrec import SasRecTransformerLayer, SasRecAggregator, SasRec
+from replay.nn.sequential.sasrec import DiffTransformerLayer, SasRecAggregator, SasRec
 
 
 # @pytest.fixture(scope="module")
@@ -62,28 +62,19 @@ from replay.nn.sequential.sasrec import SasRecTransformerLayer, SasRecAggregator
 #     return builder
 
 
-@pytest.fixture
-def model(tensor_schema):
-    model = (
-        SasRec
-        .build_original(schema=tensor_schema, embedding_dim=64, head_count=1, block_count=1, max_sequence_length=7, dropout=0.2)
-    )
-    return model
-
-
 @pytest.fixture(
     params=[
         (CE, {"padding_idx": 40}),
         (CESampled, {"padding_idx": 40}),
         (BCE, {}),
         (BCESampled, {}),
-        (LogOutCE, {"padding_idx": 40, "vocab_size": 41}),
+        (LogOutCE, {"padding_idx": 40, "vocab_size": 40}),
         (LogInCE, {"vocab_size": 41}),
         (LogInCESampled, {}),
     ],
     ids=["CE", "CE sampled", "BCE", "BCE sampled", "LogOutCE", "LogInCE", "LogInCESampled"],
 )
-def model_parametrized(request, tensor_schema):
+def sasrec_parametrized(request, tensor_schema):
     loss_cls, kwargs = request.param
     loss = loss_cls(**kwargs)
 
@@ -94,13 +85,16 @@ def model_parametrized(request, tensor_schema):
         ),
         embedding_aggregator=(
             SasRecAggregator(
-                ConcatAggregator(input_embedding_dims=[64, 64, 64, 64], output_embedding_dim=64),
+                ConcatAggregator(
+                                # input_embedding_dims=[64, 64, 64, 64],
+                                input_embedding_dims=[64, 64],
+                                output_embedding_dim=64),
                 max_sequence_length=7,
                 dropout=0.2,
             )
         ),
         attn_mask_builder=DefaultAttentionMask("item_id", 1),
-        encoder=SasRecTransformerLayer(embedding_dim=64, num_heads=1, num_blocks=1, dropout=0.2),
+        encoder=DiffTransformerLayer(embedding_dim=64, num_heads=1, num_blocks=1),
         output_normalization=torch.nn.LayerNorm(64),
         loss=loss
     )
