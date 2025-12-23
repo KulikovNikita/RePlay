@@ -9,7 +9,9 @@ class LossProto(Protocol):
     """Class-protocol for working with losses inside models"""
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]: ...
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]: ...
 
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None: ...
@@ -38,7 +40,9 @@ class SampledLossBase(torch.nn.Module):
     """The base class for calculating sampled losses"""
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         raise NotImplementedError()
 
     def get_sampled_logits(
@@ -94,7 +98,12 @@ class SampledLossBase(torch.nn.Module):
         model_embeddings = model_embeddings.unsqueeze(-2)
         if num_positives != 1:  # multti positive branch
             model_embeddings = model_embeddings.repeat((1, 1, num_positives, 1))
-        assert model_embeddings.size() == (batch_size, seq_len, num_positives, embedding_dim)
+        assert model_embeddings.size() == (
+            batch_size,
+            seq_len,
+            num_positives,
+            embedding_dim,
+        )
 
         # Apply target mask
         # [batch_size, seq_len, num_positives] -> [batch_size, seq_len]
@@ -125,7 +134,9 @@ class SampledLossBase(torch.nn.Module):
             masked_target_padding_mask = target_padding_mask.sum(-1).view(-1)
             # [batch_size, seq_len, num_positives] -> [masked_batch_size, num_positives]
             positive_labels = torch.repeat_interleave(
-                initial_positive_labels.view(-1, num_positives), masked_target_padding_mask, dim=0
+                initial_positive_labels.view(-1, num_positives),
+                masked_target_padding_mask,
+                dim=0,
             )
 
         return {

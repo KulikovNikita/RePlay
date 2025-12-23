@@ -36,7 +36,9 @@ class LogOutCE(torch.nn.Module):
         self._logits_callback = None
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         """
         Property for calling a function for the logits computation.\n
 

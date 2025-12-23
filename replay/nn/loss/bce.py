@@ -22,7 +22,9 @@ class BCE(torch.nn.Module):
         self._logits_callback = None
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         """
         Property for calling a function for the logits computation.\n
 
@@ -111,7 +113,9 @@ class BCESampled(SampledLossBase):
         self._logits_callback = None
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         """
         Property for calling a function for the logits computation.\n
 
@@ -173,10 +177,14 @@ class BCESampled(SampledLossBase):
         negative_prob = torch.sigmoid(negative_logits)
 
         positive_loss = torch.clamp(
-            torch.log((positive_prob) + self.log_epsilon), -self.clamp_border, self.clamp_border
+            torch.log((positive_prob) + self.log_epsilon),
+            -self.clamp_border,
+            self.clamp_border,
         ).sum()
         negative_loss = torch.clamp(
-            torch.log((1 - negative_prob) + self.log_epsilon), -self.clamp_border, self.clamp_border
+            torch.log((1 - negative_prob) + self.log_epsilon),
+            -self.clamp_border,
+            self.clamp_border,
         ).sum()
 
         loss = -(positive_loss + negative_loss)

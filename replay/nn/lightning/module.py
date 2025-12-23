@@ -3,7 +3,15 @@ from typing import Any, Optional, Union
 import lightning
 import torch
 
+<<<<<<< HEAD:replay/nn/lightning/module.py
 from replay.models.nn.optimizer_utils import FatOptimizerFactory, LRSchedulerFactory, OptimizerFactory
+=======
+from replay.models.nn.optimizer_utils import (
+    FatOptimizerFactory,
+    LRSchedulerFactory,
+    OptimizerFactory,
+)
+>>>>>>> feature/sasrec_v2:replay/nn/lightning.py
 from replay.nn import InferenceOutput, TrainOutput
 
 

@@ -123,6 +123,35 @@ class SasRec(torch.nn.Module):
     A model using the SasRec architecture as a hidden state generator.
     The hidden states are multiplied by the item embeddings,
     resulting in logits for each of the items.
+
+    Example:
+
+    .. code-block:: python
+
+        sasrec = SasRec(
+            embedder=SequenceEmbedding(
+                schema=tensor_schema,
+            ),
+            attn_mask_builder=DefaultAttentionMask(
+                reference_feature_name=tensor_schema.item_id_feature_name,
+                num_heads=2,
+            ),
+            embedding_aggregator=SasRecAggregator(
+                embedding_aggregator=common_aggregator,
+                max_sequence_length=100,
+                dropout=0.2,
+            ),
+            encoder=SasRecTransformerLayer(
+                embedding_dim=256,
+                num_heads=2,
+                num_blocks=2,
+                dropout=0.3,
+                activation="relu",
+            ),
+            output_normalization=torch.nn.LayerNorm(256),
+            loss=CESampled(padding_idx=tensor_schema.item_id_features.item().padding_value)
+        )
+
     """
 
     def __init__(
@@ -164,12 +193,12 @@ class SasRec(torch.nn.Module):
         self.reset_parameters()
 
     @classmethod
-    def build_original(
+    def build_default(
         cls,
-        tensor_schema: TensorSchema,
+        schema: TensorSchema,
         embedding_dim: int = 192,
-        head_count: int = 4,
-        block_count: int = 2,
+        num_heads: int = 4,
+        num_blocks: int = 2,
         max_sequence_length: int = 50,
         dropout: float = 0.3,
         excluded_features: Optional[list[str]] = None,
@@ -182,14 +211,14 @@ class SasRec(torch.nn.Module):
         from .transformer import SasRecTransformerLayer
 
         excluded_features = [
-            tensor_schema.query_id_feature_name,
-            tensor_schema.timestamp_feature_name,
+            schema.query_id_feature_name,
+            schema.timestamp_feature_name,
             *(excluded_features or []),
         ]
         excluded_features = list(set(excluded_features))
         return cls(
             embedder=SequenceEmbedding(
-                schema=tensor_schema,
+                schema=schema,
                 categorical_list_feature_aggregation_method=categorical_list_feature_aggregation_method,
                 excluded_features=excluded_features,
             ),
@@ -199,18 +228,18 @@ class SasRec(torch.nn.Module):
                 dropout=dropout,
             ),
             attn_mask_builder=DefaultAttentionMask(
-                reference_feature_name=tensor_schema.item_id_feature_name,
-                num_heads=head_count,
+                reference_feature_name=schema.item_id_feature_name,
+                num_heads=num_heads,
             ),
             encoder=SasRecTransformerLayer(
                 embedding_dim=embedding_dim,
-                num_heads=head_count,
-                num_blocks=block_count,
+                num_heads=num_heads,
+                num_blocks=num_blocks,
                 dropout=dropout,
                 activation="relu",
             ),
             output_normalization=torch.nn.LayerNorm(embedding_dim),
-            loss=CE(padding_value=tensor_schema.item_id_features.item().padding_value),
+            loss=CE(padding_idx=schema.item_id_features.item().padding_value),
         )
 
     def reset_parameters(self) -> None:
@@ -333,5 +362,7 @@ class SasRec(torch.nn.Module):
             )
         )
         return self.forward_inference(
-            feature_tensors=feature_tensors, padding_mask=padding_mask, candidates_to_score=candidates_to_score
+            feature_tensors=feature_tensors,
+            padding_mask=padding_mask,
+            candidates_to_score=candidates_to_score,
         )

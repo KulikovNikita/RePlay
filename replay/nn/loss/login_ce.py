@@ -129,7 +129,9 @@ class LogInCE(LogInCEBase):
         self._logits_callback = None
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         """
         Property for calling a function for the logits computation.\n
 
@@ -213,7 +215,11 @@ class LogInCE(LogInCEBase):
         negative_logits = negative_logits.sum(-1)
 
         probabilities = positive_logits / (positive_logits + negative_logits)
-        loss = -torch.clamp(torch.log(probabilities + self.log_epsilon), -self.clamp_border, self.clamp_border)
+        loss = -torch.clamp(
+            torch.log(probabilities + self.log_epsilon),
+            -self.clamp_border,
+            self.clamp_border,
+        )
         return loss.mean()
 
 
@@ -247,7 +253,9 @@ class LogInCESampled(LogInCEBase):
         self._logits_callback = None
 
     @property
-    def logits_callback(self) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+    def logits_callback(
+        self,
+    ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
         """
         Property for calling a function for the logits computation.\n
 
@@ -323,5 +331,9 @@ class LogInCESampled(LogInCEBase):
         negative_logits = negative_logits.sum(-1)
 
         probabilities = positive_logits / (positive_logits + negative_logits)
-        loss = -torch.clamp(torch.log(probabilities + self.log_epsilon), -self.clamp_border, self.clamp_border)
+        loss = -torch.clamp(
+            torch.log(probabilities + self.log_epsilon),
+            -self.clamp_border,
+            self.clamp_border,
+        )
         return loss.mean()
