@@ -3,12 +3,12 @@ from contextlib import nullcontext as no_exception
 import pytest
 import torch
 
-from replay.nn.lightning import LightningModule
-from replay.nn.optimizer_utils import (
+from replay.models.nn.optimizer_utils import (
     FatLRSchedulerFactory,
     FatOptimizerFactory,
     LambdaLRSchedulerFactory,
 )
+from replay.nn.lightning import LightningModule
 
 
 @pytest.mark.parametrize(

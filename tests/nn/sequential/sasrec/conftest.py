@@ -86,8 +86,8 @@ def sasrec_parametrized(request, tensor_schema):
         embedding_aggregator=(
             SasRecAggregator(
                 ConcatAggregator(
-                                # input_embedding_dims=[64, 64, 64, 64],
-                                input_embedding_dims=[64, 64],
+                                input_embedding_dims=[64, 64, 64, 64, 64],
+                                # input_embedding_dims=[64, 64],
                                 output_embedding_dim=64),
                 max_sequence_length=7,
                 dropout=0.2,

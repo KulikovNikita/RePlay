@@ -124,7 +124,7 @@ class SasRec(torch.nn.Module):
     The hidden states are multiplied by the item embeddings,
     resulting in logits for each of the items.
     """
-
+    #TODO: add doc references in init docstring
     def __init__(
         self,
         embedder: EmbedderProto,
@@ -175,6 +175,7 @@ class SasRec(torch.nn.Module):
         excluded_features: Optional[list[str]] = None,
         categorical_list_feature_aggregation_method: Literal["sum", "mean", "max"] = "sum",
     ) -> "SasRec":
+        #TODO: add doctsring
         from replay.nn import DefaultAttentionMask, SequenceEmbedding, SumAggregator
         from replay.nn.loss import CE
 
