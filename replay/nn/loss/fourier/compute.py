@@ -2,8 +2,11 @@ import torch
 
 import typing as tp
 
-def prepare_x_mask(x: torch.Tensor, mask: torch.Tensor | None = None,
-                    ) -> tuple[torch.Tensor, torch.Tensor | None]:
+
+def prepare_x_mask(
+    x: torch.Tensor,
+    mask: torch.Tensor | None = None,
+) -> tuple[torch.Tensor, torch.Tensor | None]:
     if mask is not None:
         while mask.ndim < x.ndim:
             mask = mask.unsqueeze(-1)
@@ -39,8 +42,11 @@ def compute_cdf_cn(
     return torch.sum(body, dim=0)
 
 
-def compute_cdf_c0(x: torch.Tensor, mask: torch.Tensor | None = None,
-                   n_elems: torch.Tensor | None = None,) -> torch.Tensor:
+def compute_cdf_c0(
+    x: torch.Tensor,
+    mask: torch.Tensor | None = None,
+    n_elems: torch.Tensor | None = None,
+) -> torch.Tensor:
     if n_elems is None:
         n_elems = get_n_elems(x, mask)
     casted_n_elems: torch.Tensor = tp.cast(torch.Tensor, n_elems)
@@ -53,8 +59,10 @@ def compute_cdf_c0(x: torch.Tensor, mask: torch.Tensor | None = None,
 
     return casted_n_elems - sum
 
+
 def compute_cdf_image(
-    x: torch.Tensor, n_harmonics: int, 
+    x: torch.Tensor,
+    n_harmonics: int,
     mask: torch.Tensor | None = None,
     n_elems: torch.Tensor | None = None,
 ) -> torch.Tensor:
