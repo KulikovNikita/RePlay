@@ -182,7 +182,9 @@ requirements.txt
 airflow.yaml
 
 # temporary
+examples/sasrec
 examples/tests
+examples/temp
 
 ### d3rlpy logs
 d3rlpy_logs/
