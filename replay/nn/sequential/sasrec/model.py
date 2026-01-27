@@ -169,6 +169,7 @@ class SasRec(torch.nn.Module):
         self.head = EmbeddingTyingHead()
         self.loss = loss
         self.loss.logits_callback = self.get_logits
+        self.loss.item_embeddings_callback = self.get_item_embeddings
 
         self.reset_parameters()
 
@@ -183,10 +184,11 @@ class SasRec(torch.nn.Module):
         dropout: float = 0.3,
         excluded_features: Optional[list[str]] = None,
         categorical_list_feature_aggregation_method: Literal["sum", "mean", "max"] = "sum",
+        loss_type: Literal["CE", "BCE", "InBatchFourier"] = "CE",
     ) -> "SasRec":
         from replay.nn.agg import SumAggregator
         from replay.nn.embedding import SequenceEmbedding
-        from replay.nn.loss import CE
+        from replay.nn.loss import CE, BCE, InBatchFourierLoss
         from replay.nn.mask import DefaultAttentionMask
 
         from .agg import PositionAwareAggregator
@@ -223,20 +225,35 @@ class SasRec(torch.nn.Module):
             ),
             output_normalization=torch.nn.LayerNorm(embedding_dim),
         )
-        return cls(
-            body=body,
-            loss=CE(padding_idx=schema.item_id_features.item().padding_value),
-        )
+
+        match loss_type:
+            case "BCE":
+                loss_module = BCE()
+            case "InBatchFourier":
+                loss_module = InBatchFourierLoss(n_harmonics = 64)
+            case "CE":
+                loss_module = CE(padding_idx=schema.item_id_features.item().padding_value)
+            case _:
+                msg: str = f"Unknown: {loss_type=}"
+                raise ValueError(msg)
+
+        return cls(body=body, loss=loss_module)
 
     def reset_parameters(self) -> None:
         self.body.reset_parameters()
+
+    def get_item_embeddings(
+        self,
+        candidates_to_score: Optional[torch.LongTensor] = None
+    ) -> torch.Tensor:
+        return self.body.embedder.get_item_weights(candidates_to_score)
 
     def get_logits(
         self,
         model_embeddings: torch.Tensor,
         candidates_to_score: Optional[torch.LongTensor] = None,
     ) -> torch.Tensor:
-        item_embeddings: torch.Tensor = self.body.embedder.get_item_weights(candidates_to_score)
+        item_embeddings: torch.Tensor = self.get_item_embeddings(candidates_to_score)
         logits: torch.Tensor = self.head(model_embeddings, item_embeddings)
         return logits
 

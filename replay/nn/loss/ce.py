@@ -21,6 +21,7 @@ class CE(torch.nn.Module):
         self.padding_idx = padding_idx
         self._loss = torch.nn.CrossEntropyLoss(ignore_index=padding_idx)
         self._logits_callback = None
+        self._item_embeddings_callback = None
 
     @property
     def logits_callback(
@@ -45,6 +46,19 @@ class CE(torch.nn.Module):
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None:
         self._logits_callback = func
+
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]:
+        if self._item_embeddings_callback is None:
+            msg = "The callback for getting item embeddings is not defined"
+            raise AttributeError(msg)
+        return self._item_embeddings_callback
+
+    @item_embeddings_callback.setter
+    def item_embeddings_callback(self, func: Optional[Callable]) -> None:
+        self._item_embeddings_callback = func
 
     def forward(
         self,
@@ -97,6 +111,7 @@ class CESampled(SampledLossBase):
         self.padding_idx = padding_idx
         self._loss = torch.nn.CrossEntropyLoss(ignore_index=self.padding_idx)
         self._logits_callback = None
+        self._item_embeddings_callback = None
 
     @property
     def logits_callback(
@@ -121,6 +136,19 @@ class CESampled(SampledLossBase):
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None:
         self._logits_callback = func
+
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]:
+        if self._item_embeddings_callback is None:
+            msg = "The callback for getting item embeddings is not defined"
+            raise AttributeError(msg)
+        return self._item_embeddings_callback
+
+    @item_embeddings_callback.setter
+    def item_embeddings_callback(self, func: Optional[Callable]) -> None:
+        self._item_embeddings_callback = func
 
     def forward(
         self,

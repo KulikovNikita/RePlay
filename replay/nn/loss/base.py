@@ -16,6 +16,14 @@ class LossProto(Protocol):
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None: ...
 
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]: ...
+
+    @item_embeddings_callback.setter
+    def item_embeddings_callback(self, func: Optional[Callable]) -> None: ...
+
     def forward(
         self,
         model_embeddings: torch.Tensor,
@@ -43,6 +51,12 @@ class SampledLossBase(torch.nn.Module):
     def logits_callback(
         self,
     ) -> Callable[[torch.Tensor, Optional[torch.Tensor]], torch.Tensor]:
+        raise NotImplementedError()  # pragma: no cover
+    
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]:
         raise NotImplementedError()  # pragma: no cover
 
     def get_sampled_logits(

@@ -20,6 +20,7 @@ class BCE(torch.nn.Module):
         super().__init__()
         self._loss = torch.nn.BCEWithLogitsLoss(reduction="sum")
         self._logits_callback = None
+        self._item_embeddings_callback = None
 
     @property
     def logits_callback(
@@ -44,6 +45,19 @@ class BCE(torch.nn.Module):
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None:
         self._logits_callback = func
+
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]:
+        if self._item_embeddings_callback is None:
+            msg = "The callback for getting item embeddings is not defined"
+            raise AttributeError(msg)
+        return self._item_embeddings_callback
+
+    @item_embeddings_callback.setter
+    def item_embeddings_callback(self, func: Optional[Callable]) -> None:
+        self._item_embeddings_callback = func
 
     def forward(
         self,
@@ -111,6 +125,7 @@ class BCESampled(SampledLossBase):
         self.log_epsilon = log_epsilon
         self.clamp_border = clamp_border
         self._logits_callback = None
+        self._item_embeddings_callback = None
 
     @property
     def logits_callback(
@@ -135,6 +150,19 @@ class BCESampled(SampledLossBase):
     @logits_callback.setter
     def logits_callback(self, func: Optional[Callable]) -> None:
         self._logits_callback = func
+
+    @property
+    def item_embeddings_callback(
+        self,
+    ) -> Callable[[Optional[torch.Tensor]], torch.Tensor]:
+        if self._item_embeddings_callback is None:
+            msg = "The callback for getting item embeddings is not defined"
+            raise AttributeError(msg)
+        return self._item_embeddings_callback
+
+    @item_embeddings_callback.setter
+    def item_embeddings_callback(self, func: Optional[Callable]) -> None:
+        self._item_embeddings_callback = func
 
     def forward(
         self,
