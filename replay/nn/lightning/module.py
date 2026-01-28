@@ -55,7 +55,10 @@ class LightningModule(lightning.LightningModule):
         if "candidates_to_score" not in batch and self.candidates_to_score is not None and not self.training:
             batch["candidates_to_score"] = self.candidates_to_score
         # select only args for model.forward
-        modified_batch = {k: v for k, v in batch.items() if k in inspect.signature(self.model.forward).parameters}
+        raw_model: torch.nn.Module = self.model
+        if isinstance(raw_model, torch._dynamo.OptimizedModule):
+            raw_model = raw_model._orig_mod
+        modified_batch = {k: v for k, v in batch.items() if k in inspect.signature(raw_model.forward).parameters}
         return self.model(**modified_batch)
 
     def training_step(self, batch: dict) -> torch.Tensor:
